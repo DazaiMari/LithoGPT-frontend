@@ -6,7 +6,7 @@ import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 //import Checkbox from "../form/input/Checkbox";
 
-export default function SignUpForm() {
+export default function ResetPwdForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
@@ -48,32 +48,15 @@ export default function SignUpForm() {
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Sign Up
+              Reset Password
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your email and password to sign up!
+              Enter your email and password to reset your password!
             </p>
           </div>
           <div>
             <form>
               <div className="space-y-5">
-                <div>
-                  {/* <!-- Username --> */}
-                  <div>
-                    <Label>
-                      Username<span className="text-error-500">*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      id="Username"
-                      name="Username"
-                      placeholder="Enter your username"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    3-20 characters, only letters, numbers, or underscores
-                    </p>
-                  </div>
-                </div>
                 {/* <!-- Email --> */}
                 <div>
                   <Label>
@@ -159,8 +142,6 @@ export default function SignUpForm() {
                       )}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Must match the password above</p>
                 </div>
                 {/* <!-- Checkbox --> */}
                 {/*<div className="flex items-center gap-3">*/}
@@ -183,24 +164,21 @@ export default function SignUpForm() {
                 {/* <!-- Button --> */}
                 <div>
                   <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-red-500 shadow-theme-xs hover:bg-red-600">
-                    Sign Up
+                    Reset Password
                   </button>
-                  
                 </div>
-              </div>
-            </form>
-
-            <div className="mt-5">
+                <div className="mt-5">
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                 Already have an account? {""}
                 <Link
                   to="/signin"
-                  className="text-red-500 hover:text-red-600 dark:text-red-400"
-                >
-                  Sign In
+                  className="text-red-500 hover:text-red-600 dark:text-red-400">
+                  Back to Sign In
                 </Link>
               </p>
             </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>

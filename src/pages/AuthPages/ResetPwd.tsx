@@ -1,8 +1,8 @@
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
-import SignInForm from "../../components/auth/SignInForm";
+import ForgetPwdForm from "../../components/auth/ResetPwdForm.tsx";
 
-export default function SignIn() {
+export default function ResetPwd() {
   return (
     <>
     <PageMeta
@@ -10,7 +10,7 @@ export default function SignIn() {
       description="Sign up to LithoGPT — an AI-powered platform for intelligent stone appreciation, cultural aesthetics, and creative dialogue."
     />
       <AuthLayout>
-        <SignInForm />
+        <ForgetPwdForm />
       </AuthLayout>
     </>
   );
