@@ -5,6 +5,7 @@ import ResetPwd from "./pages/AuthPages/ResetPwd";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 import AppLayout from "./layout/AppLayout";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 import LithoStudio from "./pages/LithoStudio/LithoStudio.tsx"
 import Collection from "./pages/Collection/Collection.tsx"
 import ChatRoom from "./pages/ChatRoom/ChatRoom.tsx"
@@ -31,34 +32,36 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
-            <Route index path="/" element={<LithoStudio />} />
-            <Route path="/LithoStudio" element={<LithoStudio />} />
-            <Route path="/Collection" element={<Collection />} />
-            <Route path="/ChatRoom" element={<ChatRoom />} />
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/blank" element={<Blank />} />
+          {/* Protected Routes - 需要登录才能访问 */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route index path="/" element={<LithoStudio />} />
+              <Route path="/LithoStudio" element={<LithoStudio />} />
+              <Route path="/Collection" element={<Collection />} />
+              <Route path="/ChatRoom" element={<ChatRoom />} />
+              <Route path="/profile" element={<UserProfiles />} />
+              <Route path="/blank" element={<Blank />} />
 
-            {/* Other */}
-            <Route path="/form-elements" element={<FormElements />} />
-            <Route path="/Calendar" element={<Calendar />} />
-            <Route path="/Home" element={<Home />} />
-            {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
+              {/* Other */}
+              <Route path="/form-elements" element={<FormElements />} />
+              <Route path="/Calendar" element={<Calendar />} />
+              <Route path="/Home" element={<Home />} />
+              {/* Tables */}
+              <Route path="/basic-tables" element={<BasicTables />} />
               {/*Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/badge" element={<Badges />} />
-            <Route path="/buttons" element={<Buttons />} />
-            <Route path="/images" element={<Images />} />
-            <Route path="/videos" element={<Videos />} />
-            {/* Charts */}
-            <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/avatars" element={<Avatars />} />
+              <Route path="/badge" element={<Badges />} />
+              <Route path="/buttons" element={<Buttons />} />
+              <Route path="/images" element={<Images />} />
+              <Route path="/videos" element={<Videos />} />
+              {/* Charts */}
+              <Route path="/line-chart" element={<LineChart />} />
+              <Route path="/bar-chart" element={<BarChart />} />
+            </Route>
           </Route>
 
-          {/* Auth Layout */}
+          {/* Auth Layout - 公开路由，无需登录 */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/reset-password" element={<ResetPwd />} />

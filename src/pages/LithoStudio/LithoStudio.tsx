@@ -27,7 +27,7 @@ export default function LithoStudio() {
           <TextAreaInput />
           <SelectInputs />
             <Button size="sm" variant="primary">
-              Button Text
+              Generate Your Artistic Stone Interpretation
             </Button>
         </div>
       </div>
