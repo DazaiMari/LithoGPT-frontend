@@ -291,6 +291,30 @@ layer(base);
   }
 }
 
+/* Chrome 自动填充样式覆盖 - 深色模式 */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #101828 inset !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 0 0 1000px #101828 inset !important;
+  caret-color: rgba(255, 255, 255, 0.9) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Chrome 自动填充样式覆盖 - 浅色模式 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #1d2939 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  caret-color: #1d2939 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .tableCheckbox:checked ~ span span {
   @apply opacity-100;
 }

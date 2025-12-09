@@ -1,15 +1,99 @@
 import ComponentCard from "../../common/ComponentCard";
 import { useDropzone } from "react-dropzone";
+import { stoneUpload } from "@/api/stone"; // ★ 引入你的接口
+import { useState, useEffect } from "react";
+import { toast } from "@/utils/message";
 // import Dropzone from "react-dropzone";
 
-const DropzoneComponent: React.FC = () => {
-  const onDrop = (acceptedFiles: File[]) => {
+interface DropzoneComponentProps {
+  onUploadSuccess?: (url: string) => void;
+  initialImageUrl?: string; // 初始图片 URL（用于路由切换后恢复）
+}
+
+const DropzoneComponent: React.FC<DropzoneComponentProps> = ({ onUploadSuccess, initialImageUrl }) => {
+    const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(initialImageUrl || null);
+  const [fileName, setFileName] = useState<string>("");
+  const [isServerUrl, setIsServerUrl] = useState<boolean>(!!initialImageUrl); // 标记是否是服务器 URL
+
+  // 当 initialImageUrl 变化时更新预览
+  useEffect(() => {
+    if (initialImageUrl) {
+      setPreview(initialImageUrl);
+      setIsServerUrl(true);
+    }
+  }, [initialImageUrl]);
+
+  // 清理预览 URL，防止内存泄漏（只清理本地 blob URL）
+  useEffect(() => {
+    return () => {
+      if (preview && !isServerUrl) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview, isServerUrl]);
+
+    const onDrop = async (acceptedFiles: File[]) => {
     console.log("Files dropped:", acceptedFiles);
-    // Handle file uploads here
+    if (!acceptedFiles.length) return;
+
+    const file = acceptedFiles[0]; // 后端只接收一个文件
+    
+    // 清理之前的本地预览 URL
+    if (preview && !isServerUrl) {
+      URL.revokeObjectURL(preview);
+    }
+
+    // 创建预览 URL
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
+    setFileName(file.name);
+    setIsServerUrl(false); // 标记为本地 blob URL
+
+    const formData = new FormData();
+    formData.append("stoneImage", file); // ★ key 必须叫 stoneImage
+
+    try {
+      setUploading(true);
+      // ★ 上传接口
+      const res = await stoneUpload(formData);
+      const imageServerUrl = res.data;
+      console.log("res", imageServerUrl);
+      
+      // 上传成功后，用服务器 URL 替换本地预览
+      URL.revokeObjectURL(previewUrl);
+      setPreview(imageServerUrl);
+      setIsServerUrl(true);
+      
+      onUploadSuccess?.(imageServerUrl);
+        console.log("Uploaded file: ", acceptedFiles);
+      toast.success("Upload success");
+    } catch {
+      toast.error("Upload failed");
+      // 上传失败时清除预览
+      URL.revokeObjectURL(previewUrl);
+      setPreview(null);
+      setFileName("");
+      setIsServerUrl(false);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 移除预览图片
+  const handleRemove = () => {
+    if (preview && !isServerUrl) {
+      URL.revokeObjectURL(preview);
+    }
+    setPreview(null);
+    setFileName("");
+    setIsServerUrl(false);
+    onUploadSuccess?.(""); // 通知父组件清除
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    multiple: false,
     accept: {
       "image/png": [],
       "image/jpeg": [],
@@ -20,9 +104,61 @@ const DropzoneComponent: React.FC = () => {
   return (
     <ComponentCard title="Dropzone">
       <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-red-500 dark:border-gray-700 rounded-xl hover:border-red-500">
+        {/* 预览模式 */}
+        {preview ? (
+          <div className="relative p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
+            <div className="flex flex-col items-center">
+              {/* 预览图片 */}
+              <div className="relative group mb-4">
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="max-h-[300px] max-w-full object-contain rounded-lg shadow-md"
+                />
+                {/* 上传中遮罩 */}
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="mt-2 text-white text-sm">Uploading...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 文件名 */}
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 truncate max-w-full">
+                {fileName}
+              </p>
+
+              {/* 操作按钮 */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleRemove}
+                  disabled={uploading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Remove
+                </button>
+                <div {...getRootProps()}>
+                  <input {...getInputProps()} />
+                  <button
+                    type="button"
+                    disabled={uploading}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Change Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* 上传模式 */
         <form
           {...getRootProps()}
-          className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
+            className={`dropzone rounded-xl border-dashed border-gray-300 p-7 lg:p-10
         ${
           isDragActive
             ? "border-red-500 bg-gray-100 dark:bg-gray-800"
@@ -37,7 +173,7 @@ const DropzoneComponent: React.FC = () => {
           <div className="dz-message flex flex-col items-center m-0!">
             {/* Icon Container */}
             <div className="mb-[22px] flex justify-center">
-              <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 <svg
                   className="fill-current"
                   width="29"
@@ -59,7 +195,7 @@ const DropzoneComponent: React.FC = () => {
               {isDragActive ? "Drop Image Here" : "Drag & Drop Image Here"}
             </h4>
 
-            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
+              <span className="text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
               Drag and drop your PNG, JPG, WebP, SVG images here or browse
             </span>
 
@@ -68,6 +204,7 @@ const DropzoneComponent: React.FC = () => {
             </span>
           </div>
         </form>
+        )}
       </div>
     </ComponentCard>
   );

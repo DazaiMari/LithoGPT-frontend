@@ -1,4 +1,4 @@
-import http from "./http";
+import { http } from "./http";
 
 // 登录
 export const loginApi = (data: { userEmail?: string; userName?: string; userPassword: string }) =>
@@ -31,3 +31,9 @@ export const resetPasswordApi = (data: {
 
 // 退出登录
 export const logoutApi = () => http.post("/user/logout");
+
+// 上传头像
+export const uploadAvatarApi = (data: FormData) => http.post("user/upload/avatar",
+    data,{timeout:60000});
+
+export const getUserInfoApi = () => http.get("user/get/info",)

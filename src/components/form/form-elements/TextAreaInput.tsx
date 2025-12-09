@@ -1,21 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 //import ComponentCard from "../../common/ComponentCard";
 import TextArea from "../input/TextArea";
 import Label from "../Label";
 
-export default function TextAreaInput() {
-  const [message, setMessage] = useState("");
-  //const [messageTwo, setMessageTwo] = useState("");
+interface TextAreaInputProps {
+  onTextChange?: (text: string) => void;
+  initialValue?: string; // 初始值（用于路由切换后恢复）
+}
+
+const TextAreaInput: React.FC<TextAreaInputProps> = ({ onTextChange, initialValue = "" }) => {
+  const [message, setMessage] = useState(initialValue);
+
+  // 当 initialValue 变化时更新
+  useEffect(() => {
+    setMessage(initialValue);
+  }, [initialValue]);
+
+  const handleChange = (value: string) => {
+    setMessage(value);
+    onTextChange?.(value);
+  };
+
   return (
-   // <ComponentCard title="Textarea input field">
       <div className="space-y-6">
         {/* Default TextArea */}
         <div>
           <Label>Description Of your Stone</Label>
           <TextArea
             value={message}
-            onChange={(value) => setMessage(value)}
-            rows={6}
+            onChange={handleChange}
+            rows={4}
           />
         </div>
 
@@ -25,18 +39,8 @@ export default function TextAreaInput() {
         {/*  <TextArea rows={6} disabled />*/}
         {/*</div>*/}
 
-        {/*/!* Error TextArea *!/*/}
-        {/*<div>*/}
-        {/*  <Label>Description</Label>*/}
-        {/*  <TextArea*/}
-        {/*    rows={6}*/}
-        {/*    value={messageTwo}*/}
-        {/*    error*/}
-        {/*    onChange={(value) => setMessageTwo(value)}*/}
-        {/*    hint="Please enter a valid message."*/}
-        {/*  />*/}
-        {/*</div>*/}
       </div>
-  //  </ComponentCard>
   );
-}
+};
+
+export default TextAreaInput;

@@ -3,7 +3,7 @@ import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import ResetPwd from "./pages/AuthPages/ResetPwd";
 import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
+import UserProfiles from "./pages/UserProfiles/UserProfiles.tsx";
 import AppLayout from "./layout/AppLayout";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import LithoStudio from "./pages/LithoStudio/LithoStudio.tsx"
