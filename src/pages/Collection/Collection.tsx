@@ -3,6 +3,8 @@ import PageMeta from "../../components/common/PageMeta";
 import Button from "@/components/ui/button/Button";
 import { useEffect, useState } from "react";
 import { stoneHistory, stoneMessage } from "@/api/stone.ts";
+import { forumCreatePost } from "@/api/lithoForum";
+import { toast } from "@/utils/message";
 
 interface HistoryItem {
   conversationId: string;
@@ -28,6 +30,14 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
+// 获取显示用的图片URL（取第一张）
+function getDisplayImageUrl(imageUrls: string | string[]): string {
+  if (Array.isArray(imageUrls)) {
+    return imageUrls[0] || "";
+  }
+  return imageUrls || "";
+}
+
 // 收藏卡片组件
 function CollectionCard({
   item,
@@ -36,14 +46,19 @@ function CollectionCard({
   content,
   loadingContent,
   onToggle,
+  onShare,
+  sharing,
 }: {
   item: HistoryItem;
   isSelected: boolean;
-  imageUrls: string;
+  imageUrls: string | string[];
   content: string;
   loadingContent: boolean;
   onToggle: () => void;
+  onShare: () => void;
+  sharing: boolean;
 }) {
+  const displayImageUrl = getDisplayImageUrl(imageUrls);
   return (
     <div
       id={`card-${item.conversationId}`}
@@ -56,23 +71,50 @@ function CollectionCard({
             {item.titles}
           </h3>
         </div>
-        <Button
-          variant={isSelected ? "primary" : "outline"}
-          size="sm"
-          onClick={onToggle}
-          startIcon={
-            <svg
-              className={`w-4 h-4 transition-transform duration-300 ${isSelected ? "rotate-180" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <div className="flex items-center gap-2">
+          {/* Share Button - 只在展开且有内容时显示 */}
+          {isSelected && !loadingContent && (displayImageUrl || content) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShare}
+              disabled={sharing}
+              startIcon={
+                sharing ? (
+                  <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                )
+              }
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          }
-        >
-          {isSelected ? "Collapse" : "View"}
-        </Button>
+              {sharing ? "Sharing..." : "Share"}
+            </Button>
+          )}
+          <Button
+            variant={isSelected ? "primary" : "outline"}
+            size="sm"
+            onClick={onToggle}
+            startIcon={
+              <svg
+                className={`w-4 h-4 transition-transform duration-300 ${isSelected ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            }
+          >
+            {isSelected ? "Collapse" : "View"}
+          </Button>
+        </div>
       </div>
 
       {/* Card Body - 展开内容 */}
@@ -85,12 +127,12 @@ function CollectionCard({
                 <div className="absolute inset-0 flex items-center justify-center backdrop-blur-sm">
                   <LoadingSpinner text="Loading image..." />
                 </div>
-              ) : imageUrls ? (
+              ) : displayImageUrl ? (
                 <img
-                  src={imageUrls}
+                  src={displayImageUrl}
                   alt="Stone"
                   className="w-full h-auto rounded-xl border border-gray-200 dark:border-gray-700 hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
-                  onClick={() => window.open(imageUrls, "_blank")}
+                  onClick={() => window.open(displayImageUrl, "_blank")}
                 />
               ) : (
                 <EmptyState text="No image available" />
@@ -142,10 +184,11 @@ export default function Collection() {
     getHistory();
   }, []);
 
-  const [imageUrls, setImageurls] = useState<string>("");
+  const [imageUrls, setImageurls] = useState<string | string[]>("");
   const [content, setContent] = useState<string>("");
   const [loadingContent, setLoadingContent] = useState(false);
   const [selected, setSelected] = useState<string>("");
+  const [sharing, setSharing] = useState(false);
 
   const getConversationMessage = async (conversationId: string) => {
     try {
@@ -154,7 +197,7 @@ export default function Collection() {
       setContent("");
       const res = await stoneMessage({ conversationId });
       let contentTT = "";
-      let imageUrlsTT = "";
+      let imageUrlsTT: string | string[] = "";
       if (res.data[0]) {
         try {
           imageUrlsTT = JSON.parse(res.data[0].imageUrls);
@@ -188,6 +231,41 @@ export default function Collection() {
         cardElement.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 100);
+  };
+
+  // 分享到论坛
+  const handleShare = async (title: string) => {
+    if (!imageUrls && !content) {
+      toast.error("No content to share");
+      return;
+    }
+
+    // 处理 imageUrls，确保是字符串数组
+    let imageUrlsArray: string[] = [];
+    if (imageUrls) {
+      if (Array.isArray(imageUrls)) {
+        // 如果已经是数组，直接使用
+        imageUrlsArray = imageUrls;
+      } else if (typeof imageUrls === "string") {
+        // 如果是字符串，包装成数组
+        imageUrlsArray = [imageUrls];
+      }
+    }
+
+    try {
+      setSharing(true);
+      await forumCreatePost({
+        title: title || "Stone Appreciation",
+        content: content || "",
+        imageUrls: imageUrlsArray,
+      });
+      toast.success("Shared to ChatRoom successfully!");
+    } catch (error) {
+      console.error("Failed to share:", error);
+      toast.error("Failed to share to ChatRoom");
+    } finally {
+      setSharing(false);
+    }
   };
 
   return (
@@ -244,6 +322,8 @@ export default function Collection() {
               content={content}
               loadingContent={loadingContent}
               onToggle={() => handleToggleCard(item.conversationId)}
+              onShare={() => handleShare(item.titles)}
+              sharing={sharing}
             />
           ))}
         </div>
