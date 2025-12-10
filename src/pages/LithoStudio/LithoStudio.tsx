@@ -39,7 +39,8 @@ export default function LithoStudio() {
         setRequestOptions(options, values);
     };
 
-    const combinedPrompt = `This is my personalised requirement.：${requestPrompt},Please generate the article in the following style:${requestOptions}`;
+    const combinedPrompt = `This is my personalised requirement：${requestPrompt},Please generate the article in the
+     following style:${requestOptions}`;
 
     const handleChat = async () => {
         setLoading(true);
