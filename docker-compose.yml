@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   frontend:
+    image: lithogpt-frontend:latest
     build:
       context: .
       dockerfile: Dockerfile
