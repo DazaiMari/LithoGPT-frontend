@@ -13,7 +13,7 @@ RUN npm ci
 COPY . .
 
 # 设置构建时的环境变量
-ARG VITE_API_BASE_URL=http://103.143.81.103:8091
+ARG VITE_API_BASE_URL=http://lithogpt.com:8091
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # 构建应用

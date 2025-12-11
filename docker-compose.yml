@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=http://103.143.81.103:8091
+        - VITE_API_BASE_URL=http://lithogpt.com:8091
     container_name: lithogpt-frontend
     ports:
       - "80:80"
