@@ -1,5 +1,6 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import MarkdownRenderer from "../../components/common/MarkdownRenderer";
 import DropzoneComponent from "../../components/form/form-elements/DropZone";
 import SelectInputs from "../../components/form/form-elements/SelectInputs";
 import TextAreaInput from "../../components/form/form-elements/TextAreaInput";
@@ -122,19 +123,17 @@ export default function LithoStudio() {
                 <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                   AI Interpretation
                 </h4>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {assistantText ? (
-                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                      {assistantText}
-                      {loading && <span className="animate-pulse">▌</span>}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span>Thinking...</span>
-                    </div>
-                  )}
-                </div>
+                {assistantText ? (
+                  <MarkdownRenderer 
+                    content={assistantText} 
+                    showLoadingCursor={loading}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Thinking...</span>
+                  </div>
+                )}
               </div>
             )}
         </div>
