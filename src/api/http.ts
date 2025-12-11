@@ -35,21 +35,78 @@ const httpStream = axios.create({
   }],
 });
 
-//  请求拦截：注入 token
+// 递归转换请求数据中的相对路径为完整的 MinIO URL
+// 将 /uploads/xxx 转换回 http://68.64.179.75:9000/uploads/xxx
+// 这样后端可以正确访问 MinIO 资源
+function denormalizeImageUrls(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  // 如果是字符串，检查是否是相对路径
+  if (typeof obj === 'string') {
+    // 匹配相对路径: /uploads/xxx
+    if (obj.startsWith('/uploads/')) {
+      // 转换回完整的 MinIO URL
+      return `http://68.64.179.75:9000${obj}`;
+    }
+    return obj;
+  }
+  
+  // 如果是数组，递归处理每个元素
+  if (Array.isArray(obj)) {
+    return obj.map(item => denormalizeImageUrls(item));
+  }
+  
+  // 如果是对象，递归处理每个属性
+  if (typeof obj === 'object') {
+    const denormalized: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        denormalized[key] = denormalizeImageUrls(obj[key]);
+      }
+    }
+    return denormalized;
+  }
+  
+  return obj;
+}
+
+//  请求拦截：注入 token 并转换图片 URL
 http.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // 转换请求数据中的相对路径为完整的 MinIO URL
+  if (config.data) {
+    config.data = denormalizeImageUrls(config.data);
+  }
+  // 转换 URL 参数中的相对路径
+  if (config.params) {
+    config.params = denormalizeImageUrls(config.params);
+  }
+  
   return config;
 });
 
-// SSE 流也需要 token
+// SSE 流也需要 token 和 URL 转换
 httpStream.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // 转换请求数据中的相对路径为完整的 MinIO URL
+  if (config.data) {
+    config.data = denormalizeImageUrls(config.data);
+  }
+  // 转换 URL 参数中的相对路径
+  if (config.params) {
+    config.params = denormalizeImageUrls(config.params);
+  }
+  
   return config;
 });
 
