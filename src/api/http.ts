@@ -149,15 +149,32 @@ function normalizeImageUrls(obj: any): any {
     return obj;
   }
   
-  // 如果是字符串，检查是否是 MinIO URL
+  // 如果是字符串，检查是否是 MinIO URL 或包含 URL 的 JSON 字符串
   if (typeof obj === 'string') {
-    // 匹配 MinIO 的 HTTP URL 模式: http://68.64.179.75:9000/uploads/xxx
+    // 先检查是否是直接的 MinIO URL
     const minioPattern = /^https?:\/\/[^\/]+\/uploads\/(.+)$/i;
     const match = obj.match(minioPattern);
     if (match) {
       // 转换为相对路径，通过 nginx 代理访问
       return `/uploads/${match[1]}`;
     }
+    
+    // 检查是否是包含 MinIO URL 的 JSON 字符串（如 "[\"http://...\"]"）
+    // 尝试解析 JSON，如果成功且包含 MinIO URL，则转换
+    if (obj.trim().startsWith('[') || obj.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(obj);
+        // 如果解析成功，递归处理解析后的内容
+        const normalized = normalizeImageUrls(parsed);
+        // 如果转换后的内容与原始不同，说明有 URL 被转换了，返回转换后的 JSON 字符串
+        if (JSON.stringify(normalized) !== JSON.stringify(parsed)) {
+          return JSON.stringify(normalized);
+        }
+      } catch {
+        // 不是有效的 JSON，继续处理
+      }
+    }
+    
     return obj;
   }
   
