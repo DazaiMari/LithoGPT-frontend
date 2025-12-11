@@ -83,7 +83,45 @@ httpStream.interceptors.response.use(
   }
 );
 
-//  响应拦截：统一错误处理
+// 递归转换响应数据中的 MinIO HTTP URL 为相对路径
+// 解决 HTTPS 页面加载 HTTP 资源的混合内容问题
+function normalizeImageUrls(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  // 如果是字符串，检查是否是 MinIO URL
+  if (typeof obj === 'string') {
+    // 匹配 MinIO 的 HTTP URL 模式: http://68.64.179.75:9000/uploads/xxx
+    const minioPattern = /^https?:\/\/[^\/]+\/uploads\/(.+)$/i;
+    const match = obj.match(minioPattern);
+    if (match) {
+      // 转换为相对路径，通过 nginx 代理访问
+      return `/uploads/${match[1]}`;
+    }
+    return obj;
+  }
+  
+  // 如果是数组，递归处理每个元素
+  if (Array.isArray(obj)) {
+    return obj.map(item => normalizeImageUrls(item));
+  }
+  
+  // 如果是对象，递归处理每个属性
+  if (typeof obj === 'object') {
+    const normalized: any = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        normalized[key] = normalizeImageUrls(obj[key]);
+      }
+    }
+    return normalized;
+  }
+  
+  return obj;
+}
+
+//  响应拦截：统一错误处理和 URL 转换
 http.interceptors.response.use(
   (res) => {
     const data = res.data;
@@ -98,7 +136,8 @@ http.interceptors.response.use(
         return Promise.reject(new Error(errorMessage));
       }
     }
-    return data;
+    // 转换响应数据中的 MinIO URL 为相对路径
+    return normalizeImageUrls(data);
   },
   (error) => {
     // 网络错误（没有 response）
