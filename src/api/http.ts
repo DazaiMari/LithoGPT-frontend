@@ -80,7 +80,8 @@ http.interceptors.request.use((config) => {
   }
   
   // 转换请求数据中的相对路径为完整的 MinIO URL
-  if (config.data) {
+  // 注意：跳过 FormData，因为它是用于文件上传的特殊对象
+  if (config.data && !(config.data instanceof FormData)) {
     config.data = denormalizeImageUrls(config.data);
   }
   // 转换 URL 参数中的相对路径
@@ -99,7 +100,8 @@ httpStream.interceptors.request.use((config) => {
   }
   
   // 转换请求数据中的相对路径为完整的 MinIO URL
-  if (config.data) {
+  // 注意：跳过 FormData，因为它是用于文件上传的特殊对象
+  if (config.data && !(config.data instanceof FormData)) {
     config.data = denormalizeImageUrls(config.data);
   }
   // 转换 URL 参数中的相对路径
