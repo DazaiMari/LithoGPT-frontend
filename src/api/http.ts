@@ -152,11 +152,35 @@ function normalizeImageUrls(obj: any): any {
   // 如果是字符串，检查是否是 MinIO URL 或包含 URL 的 JSON 字符串
   if (typeof obj === 'string') {
     // 先检查是否是直接的 MinIO URL
-    const minioPattern = /^https?:\/\/[^\/]+\/uploads\/(.+)$/i;
+    const minioPattern = /^(https?:\/\/[^\/]+)(\/uploads\/.+)$/i;
     const match = obj.match(minioPattern);
     if (match) {
-      // 转换为相对路径，通过 nginx 代理访问
-      return `/uploads/${match[1]}`;
+      const baseUrl = match[1];
+      const pathPart = match[2]; // 包含 /uploads/ 的路径部分
+      
+      try {
+        // 尝试直接解析 URL（如果已经是正确编码的）
+        const url = new URL(obj);
+        return url.pathname;
+      } catch {
+        // URL 解析失败，可能是包含未编码的中文字符
+        // 手动处理：编码路径部分中的中文字符
+        // 路径格式：/uploads/filename.jpg
+        const pathSegments = pathPart.split('/');
+        const encodedPath = pathSegments.map((segment, index) => {
+          if (index === 0) {
+            // 第一个是空字符串（因为路径以 / 开头），或者是 /uploads
+            return segment;
+          }
+          // 检查是否包含未编码的中文字符
+          if (segment && /[^\x00-\x7F]/.test(segment) && !/%[0-9A-F]{2}/i.test(segment)) {
+            return encodeURIComponent(segment);
+          }
+          return segment;
+        }).join('/');
+        
+        return encodedPath;
+      }
     }
     
     // 检查字符串中是否包含 MinIO URL 模式
