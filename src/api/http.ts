@@ -159,19 +159,18 @@ function normalizeImageUrls(obj: any): any {
       return `/uploads/${match[1]}`;
     }
     
-    // 检查是否是包含 MinIO URL 的 JSON 字符串（如 "[\"http://...\"]"）
-    // 尝试解析 JSON，如果成功且包含 MinIO URL，则转换
-    if (obj.trim().startsWith('[') || obj.trim().startsWith('{')) {
+    // 检查字符串中是否包含 MinIO URL 模式
+    // 如果包含，可能是 JSON 字符串，尝试解析并转换
+    if (obj.includes('/uploads/') && (obj.includes('http://') || obj.includes('https://'))) {
       try {
+        // 尝试解析 JSON（可能是数组或对象格式的字符串）
         const parsed = JSON.parse(obj);
         // 如果解析成功，递归处理解析后的内容
         const normalized = normalizeImageUrls(parsed);
-        // 如果转换后的内容与原始不同，说明有 URL 被转换了，返回转换后的 JSON 字符串
-        if (JSON.stringify(normalized) !== JSON.stringify(parsed)) {
-          return JSON.stringify(normalized);
-        }
+        // 重新序列化为 JSON 字符串
+        return JSON.stringify(normalized);
       } catch {
-        // 不是有效的 JSON，继续处理
+        // 不是有效的 JSON，可能是普通字符串包含 URL，继续处理
       }
     }
     
