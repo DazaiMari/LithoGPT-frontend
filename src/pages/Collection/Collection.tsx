@@ -1,5 +1,6 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import MarkdownRenderer from "../../components/common/MarkdownRenderer";
 import Button from "@/components/ui/button/Button";
 import { useEffect, useState } from "react";
 import { stoneHistory, stoneMessage } from "@/api/stone.ts";
@@ -148,9 +149,10 @@ function CollectionCard({
                 {loadingContent ? (
                   <LoadingSpinner text="Loading analysis..." />
                 ) : content ? (
-                  <p className="whitespace-pre-line text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                    {content}
-                  </p>
+                  <MarkdownRenderer 
+                    content={content}
+                    className="text-sm"
+                  />
                 ) : (
                   <EmptyState text="No content available" />
                 )}

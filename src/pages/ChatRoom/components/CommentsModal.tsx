@@ -2,6 +2,7 @@ import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import TextArea from "@/components/form/input/TextArea";
 import Avatar from "@/components/ui/avatar/Avatar";
+import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import type { Post, Comment } from "../types";
 import { DEFAULT_AVATAR } from "../constants";
 import { formatTime } from "../utils";
@@ -130,9 +131,10 @@ export default function CommentsModal({
                           )}
                         </div>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm">
-                        {comment.content}
-                      </p>
+                      <MarkdownRenderer 
+                        content={comment.content}
+                        className="text-sm text-gray-600 dark:text-gray-300"
+                      />
                     </div>
                     <div className="flex items-center gap-4 mt-2 ml-2">
                       <button

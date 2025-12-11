@@ -1,4 +1,5 @@
 import Avatar from "@/components/ui/avatar/Avatar";
+import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import type { Post } from "../types";
 import { DEFAULT_AVATAR } from "../constants";
 import { formatTime } from "../utils";
@@ -49,9 +50,10 @@ export default function PostCard({ post, onLike, onComment, onDelete, canDelete 
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
           {post.title}
         </h3>
-        <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">
-          {post.content}
-        </p>
+        <MarkdownRenderer 
+          content={post.content}
+          className="text-gray-600 dark:text-gray-300"
+        />
       </div>
 
       {/* Post Images */}
