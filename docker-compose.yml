@@ -17,6 +17,10 @@ services:
       # 请根据实际证书路径修改以下路径
       - /etc/letsencrypt/live/lithogpt.com/fullchain.pem:/etc/nginx/ssl/cert.pem:ro
       - /etc/letsencrypt/live/lithogpt.com/privkey.pem:/etc/nginx/ssl/key.pem:ro
+    # 添加 host.docker.internal 支持（用于访问宿主机上的服务）
+    # Linux 系统可能需要使用 extra_hosts 或 network_mode: "host"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     networks:
       - lithogpt-network
